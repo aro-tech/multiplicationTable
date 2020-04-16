@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<html>
+<body>
+<canvas id="c1" width="1000" height="470" style="border:1px solid">
+Canvas object not supported
+</canvas>
+<script>
+var c1 = document.getElementById("c1");
+var ctx = c1.getContext("2d");
+
+var grid = {
+	ctx: ctx,
+	rows: 12,
+	columns: 12,
+	cellWidth: 64,
+	cellPadding: 4,
+	cellHeight: 24,
+	font: "18px Arial",
+	DEBUG: false,
+	ERASE_DELAY_SECONDS: 3,
+	isRowHeader: function(r, c) {
+		return c == 1 && r > 1;
+	},
+	isColHeader: function(r, c) {
+		return r == 1 && c > 1;
+	},  
+	isSelectedCell: function(r, c, selectedRow, selectedColumn) {
+		return selectedRow && selectedRow === r && selectedColumn && selectedColumn === c;
+	},  
+	drawCells: function(selectedRow, selectedColumn) {
+		for(var i = 1; i < this.rows + 2; i++) {
+			for(var j = 1; j < this.columns + 2; j++) {
+				if(this.isRowHeader(i,j)) {
+					this.drawCell(i, j, "   " + (i-1));
+				} else if(this.isColHeader(i,j)) {
+					grid.drawCell(i, j, "   " + (j-1));
+				} else if(i > 1) {
+					if(this.isSelectedCell(i, j, selectedRow, selectedColumn)) {
+						this.drawCell(i, j, "  " + (i-1) * (j-1));
+					} else {
+						this.drawCell(i, j, this.unsolvedText(i,j));
+					}
+				}
+			}
+		}		
+	},
+	unsolvedText: function(cellRow, cellCol){
+		return (cellRow-1) + " x " + (cellCol-1);
+	},
+	drawCell : function(row, col, text) {
+		this.ctx.strokeStyle = 'rgb(0,0,255)';
+		upperLeftX = col*(this.cellWidth + this.cellPadding);
+		upperLeftY = row*(this.cellHeight + this.cellPadding);
+		this.ctx.clearRect(upperLeftX, upperLeftY, this.cellWidth, this.cellHeight);	
+		this.ctx.strokeRect(upperLeftX, upperLeftY, this.cellWidth, this.cellHeight);	
+		ctx.font = this.font;
+		this.ctx.strokeStyle = 'rgb(50,50,50)';
+		var offsetX = 10;
+		if(text.length > 5) {
+			offsetX = 4;
+		}
+		ctx.fillText(text, upperLeftX + offsetX, upperLeftY + this.cellHeight - 4);
+
+	},
+	MOUSE_CLICK_OFFSET: 9,
+	isClickInCell(e, cellRow, cellCol) {
+		upperLeftX = cellCol*(this.cellWidth + this.cellPadding);
+		upperLeftY = cellRow*(this.cellHeight + this.cellPadding);
+		return (cellRow > 1 && cellCol > 1 
+			&& e.clientX >= upperLeftX + this.MOUSE_CLICK_OFFSET 			
+			&& e.clientY >= upperLeftY + this.MOUSE_CLICK_OFFSET 
+			&& e.clientX <= upperLeftX + this.MOUSE_CLICK_OFFSET + this.cellWidth 
+			&& e.clientY <= upperLeftY + this.MOUSE_CLICK_OFFSET + this.cellHeight);
+	},
+	drawAnswerAndSetCallbackToEraseItAfterDelay: function(cellRow, cellCol){
+		grid.drawCell(cellRow, cellCol, (cellRow - 1) * (cellCol - 1));		
+		var gridForFunc = this;
+		var r = cellRow;
+		var c = cellCol;
+		window.setTimeout(function(){gridForFunc.drawCell(r, c, gridForFunc.unsolvedText(r, c))},this.ERASE_DELAY_SECONDS * 1000);		
+	},
+	handleClick(e) {
+		var cellColApprox = Math.round(e.clientX / (this.cellWidth + grid.cellPadding));
+		var cellRowApprox = Math.round(e.clientY / (this.cellHeight + grid.cellPadding));
+
+		for(var cellRow = cellRowApprox - 1; cellRow < cellRowApprox + 2 && cellRow < this.rows + 2; cellRow++) {
+			for(var cellCol = cellColApprox - 1; cellCol < cellColApprox + 2  && cellCol < this.columns + 2; cellCol++) {
+				if(this.isClickInCell(e, cellRow, cellCol)) {
+					this.drawAnswerAndSetCallbackToEraseItAfterDelay(cellRow, cellCol);		
+				}		
+			} // end inner for
+		} // end outer for
+		if(this.DEBUG) {
+			this.debugMouseClick(e);	
+		}
+	}, // end handleClick
+	debugMouseClick(e) {
+		this.ctx.beginPath();
+		this.ctx.arc(e.clientX - 9, e.clientY - 9, 8, 0, Math.PI*2);
+		this.ctx.stroke();
+	}
+};
+
+grid.drawCells();
+c1.addEventListener('click', function(e) {grid.handleClick(e);});
+
+ctx.save();
+ctx.font = "24px Arial";
+ctx.fillText("Multiplication Table - Click on a calculation to reveal the result", 210, 430);
+ctx.restore(); 
+</script>
+</body>
+</html>
