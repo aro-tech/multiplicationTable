@@ -68,10 +68,10 @@ var grid = {
 		upperLeftX = cellCol*(this.cellWidth + this.cellPadding);
 		upperLeftY = cellRow*(this.cellHeight + this.cellPadding);
 		return (cellRow > 1 && cellCol > 1 
-			&& e.clientX >= upperLeftX + this.MOUSE_CLICK_OFFSET 			
-			&& e.clientY >= upperLeftY + this.MOUSE_CLICK_OFFSET 
-			&& e.clientX <= upperLeftX + this.MOUSE_CLICK_OFFSET + this.cellWidth 
-			&& e.clientY <= upperLeftY + this.MOUSE_CLICK_OFFSET + this.cellHeight);
+			&& e.pageX >= upperLeftX + this.MOUSE_CLICK_OFFSET 			
+			&& e.pageY >= upperLeftY + this.MOUSE_CLICK_OFFSET 
+			&& e.pageX <= upperLeftX + this.MOUSE_CLICK_OFFSET + this.cellWidth 
+			&& e.pageY <= upperLeftY + this.MOUSE_CLICK_OFFSET + this.cellHeight);
 	},
 	drawAnswerAndSetCallbackToEraseItAfterDelay: function(cellRow, cellCol){
 		grid.drawCell(cellRow, cellCol, (cellRow - 1) * (cellCol - 1));		
@@ -81,8 +81,8 @@ var grid = {
 		window.setTimeout(function(){gridForFunc.drawCell(r, c, gridForFunc.unsolvedText(r, c))},this.ERASE_DELAY_SECONDS * 1000);		
 	},
 	handleClick(e) {
-		var cellColApprox = Math.round(e.clientX / (this.cellWidth + grid.cellPadding));
-		var cellRowApprox = Math.round(e.clientY / (this.cellHeight + grid.cellPadding));
+		var cellColApprox = Math.round(e.pageX / (this.cellWidth + grid.cellPadding));
+		var cellRowApprox = Math.round(e.pageY / (this.cellHeight + grid.cellPadding));
 
 		for(var cellRow = cellRowApprox - 1; cellRow < cellRowApprox + 2 && cellRow < this.rows + 2; cellRow++) {
 			for(var cellCol = cellColApprox - 1; cellCol < cellColApprox + 2  && cellCol < this.columns + 2; cellCol++) {
@@ -97,7 +97,7 @@ var grid = {
 	}, // end handleClick
 	debugMouseClick(e) {
 		this.ctx.beginPath();
-		this.ctx.arc(e.clientX - 9, e.clientY - 9, 8, 0, Math.PI*2);
+		this.ctx.arc(e.pageX - 9, e.pageY - 9, 8, 0, Math.PI*2);
 		this.ctx.stroke();
 	}
 };
